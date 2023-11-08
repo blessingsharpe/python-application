@@ -1,18 +1,3 @@
-#Provider configuration for AWS
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 4.16"
-    }
-  }
-
-}
-
-provider "aws" {
-  region = var.aws_region
-}
-
 # Create a VPC
 resource "aws_vpc" "docker_vpc" {
   cidr_block = var.vpc_cidr
@@ -82,19 +67,6 @@ vpc_id = aws_vpc.docker_vpc.id
     cidr_blocks = ["0.0.0.0/0"]    # Allow traffic to any destination
   }
 }
-
-# Create an EC2 instance for your Docker registry
-#resource "aws_instance" "docker_registry" {
-#  ami             = var.docker_registry_ami
-#  instance_type   = var.docker_registry_instance_type
-#  subnet_id       = aws_subnet.private_subnet[count.index].id
-#  security_groups = [aws_security_group.docker_registry_sg.id]
- # count = length(var.private_subnet_availability_zone)
-  
-
-  # You can customize the user data script to set up your Docker registry on launch
-  #user_data = var.docker_registry_user_data
-#}
 
 
 
@@ -185,12 +157,12 @@ resource "aws_iam_policy" "eks_nodegroup_policy" {
 
 
 #Attach the IAM policy to the node group's IAM role. You can use the aws_iam_policy_attachment resource to do this:
-resource "aws_iam_policy_attachment" "eks_nodegroup_attachment" {
-  name       = "eks-nodegroup-attachment"
-  count      = length(aws_eks_node_group.pythonapp_workers)   #This ensures that the aws_iam_policy_attachment resource is created for each instance of the node group
-  roles      = [aws_eks_node_group.pythonapp_workers.node_group_name]
-  policy_arn = aws_iam_policy.eks_nodegroup_policy.arn
-}
+#resource "aws_iam_policy_attachment" "eks_nodegroup_attachment" {
+ # name       = "eks-nodegroup-attachment"
+#  count      = length(aws_eks_node_group.pythonapp_workers)   #This ensures that the aws_iam_policy_attachment resource is created for each instance of the node group
+ # roles      = [aws_eks_node_group.pythonapp_workers.node_group_name]
+ # policy_arn = aws_iam_policy.eks_nodegroup_policy.arn
+#}
 
 
 
@@ -210,6 +182,19 @@ name = "python-eks-cluster"
 }
 
 
+resource "aws_db_instance" "my_rds" {
+  allocated_storage    = 20
+  storage_type         = "gp2"
+  engine               = "mysql"
+  engine_version       = "5.7"
+  instance_class       = "db.t2.micro"
+  name                 = "mydb"
+  username             = "myuser"
+  password             = "mypassword"
+  parameter_group_name = "default.mysql5.7"
+  vpc_security_group_ids = [aws_security_group.my_security_group.id]
+  subnet_group_name     = "my-subnet-group"
+}
 
 
 
