@@ -7,10 +7,11 @@ resource "aws_vpc" "docker_vpc" {
 
 # Define two public subnets in two AZs
 resource "aws_subnet" "public_subnet" {
-  count = length(var.public_subnet_availability_zone)
+  #count = length(var.public_subnet_availability_zone)
+  count = 2
   vpc_id = aws_vpc.docker_vpc.id
   cidr_block = var.public_subnet_cidr[count.index]
-  availability_zone = var.public_subnet_availability_zone[count.index]
+  availability_zone = element["us-west-2a", "us-west-2b"],  [count.index]
   map_public_ip_on_launch = true  # This enables auto-assigning public IPs
   tags = {
     Name = "public-subnet-${count.index + 1}"
@@ -19,16 +20,29 @@ resource "aws_subnet" "public_subnet" {
 
 
 # Define 4 private subnets for RDS databse and worker nodes in 2 AZs 
-resource "aws_subnet" "private_subnet" {
-  count = length(var.private_subnet_availability_zone)
+resource "aws_subnet" "private_worker" {                        #for worker nodes                                                               #count = length(var.private_subnet_availability_zone)
+  count = 2
   vpc_id = aws_vpc.docker_vpc.id
-  cidr_block = var.private_subnet_cidr[count.index]
-  availability_zone = var.private_subnet_availability_zone[count.index]
+  cidr_block = var.private_workersubnet_cidr_blocks[count.index]
+  availability_zone = element["us-west-2c", "us-west-2d"], [count.index]
   map_public_ip_on_launch = false  # Private subnets don't auto-assign public IPs
   tags = {
     Name = "Private Subnet ${count.index}"
   }
 }
+
+
+resource "aws_subnet" "private_rds" {
+  count = 2
+  cidr_block = var.private_rds_subnet_cidr_blocks[count.index]
+  vpc_id = aws_vpc.main.id
+  availability_zone = element(["us-west-2a", "us-west-2b"], count.index)
+  tags = {
+    Name = "private-rds-subnet-${count.index + 1}"
+  }
+}
+
+
 
 
 resource "aws_db_subnet_group" "mydb_subnet_group" {

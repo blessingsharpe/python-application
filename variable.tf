@@ -9,13 +9,13 @@ variable "vpc_cidr" {
 }
 
 
-variable "public_subnet_cidr" {
+variable "public_subnet_cidr_block" {
   description = "CIDR blocks for the public subnets"
    type        = list(string)
   default     = ["10.0.0.0/24", "10.0.1.0/24"]
 }
 
-variable "private_subnet_cidr" {
+variable "private_workersubnet_cidr_blocks" {
   description = "CIDR blocks for the private subnets"
   type        = list(string)
   default     = ["10.0.3.0/24", "10.0.4.0/24"]
@@ -23,23 +23,23 @@ variable "private_subnet_cidr" {
 
 
 
-variable "private_rds_subnet_cidr_block" {
+variable "private_rds_subnet_cidr_blocks" {
   description = "The CIDR block for the private subnet for rds."
   default     = ["10.0.5.0/24",  "10.0.6.0/24"]
 }
 
 
-variable "public_subnet_availability_zone" {
-  description = "Availability zone for the public subnet"
-   type        = list(string)
-  default     = ["us-west-2a", "us-west-2b"]
-}
+#variable "public_subnet_availability_zone" {
+#  description = "Availability zone for the public subnet"
+#   type        = list(string)
+#  default     = ["us-west-2a", "us-west-2b"]
+#}
 
-variable "private_subnet_availability_zone" {
-  description = "Availability zone for the private subnet"
-   type        = list(string)
-  default     = ["us-west-2c", "us-west-2d", "us-west-2e", "us-west-2f"]
-}
+#variable "private_subnet_availability_zone" {
+#  description = "Availability zone for the private subnet"
+#   type        = list(string)
+#  default     = ["us-west-2c", "us-west-2d", "us-west-2e", "us-west-2f"]
+#}
 
 variable "docker_registry_ingress_port" {
   description = "Port for Docker registry ingress"
