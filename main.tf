@@ -5,7 +5,7 @@ resource "aws_vpc" "docker_vpc" {
 
 
 
-# Define two public subnets
+# Define two public subnets in two AZs
 resource "aws_subnet" "public_subnet" {
   count = length(var.public_subnet_availability_zone)
   vpc_id = aws_vpc.docker_vpc.id
@@ -13,12 +13,12 @@ resource "aws_subnet" "public_subnet" {
   availability_zone = var.public_subnet_availability_zone[count.index]
   map_public_ip_on_launch = true  # This enables auto-assigning public IPs
   tags = {
-    Name = "Public Subnet ${count.index}"
+    Name = "public-subnet-${count.index + 1}"
   }
 }
 
 
-# Define 4 private subnets for RDS databse and worker nodes 
+# Define 4 private subnets for RDS databse and worker nodes in 2 AZs 
 resource "aws_subnet" "private_subnet" {
   count = length(var.private_subnet_availability_zone)
   vpc_id = aws_vpc.docker_vpc.id
@@ -29,6 +29,45 @@ resource "aws_subnet" "private_subnet" {
     Name = "Private Subnet ${count.index}"
   }
 }
+
+
+resource "aws_db_subnet_group" "mydb_subnet_group" {
+  name       = "mydb-subnet-group"
+  subnet_ids = aws_subnet.private[*].id
+}
+
+
+# Create RDS instance
+resource "aws_db_instance" "my_rds" {
+  allocated_storage    = 20
+  storage_type         = "gp2"
+  engine               = "mysql"
+  engine_version       = "5.7"
+  instance_class       = "db.t2.micro"
+  name                 = "mydb"
+  username             = "myuser"
+  password             = "mypassword"
+  parameter_group_name = "default.mysql5.7"
+  #vpc_security_group_ids = [aws_security_group.my_security_group.id]
+  db_subnet_group_name     = aws_db_subnet_group.mydb_subnet_group.name
+  multi_az = true # This enables the deployment across multiple availability zones
+
+ tags = {
+    Name = "mydb-instance"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -177,24 +216,6 @@ name = "python-eks-cluster"
 #region = "us-east-2"
 
 }
-
-
-resource "aws_db_instance" "my_rds" {
-  allocated_storage    = 20
-  storage_type         = "gp2"
-  engine               = "mysql"
-  engine_version       = "5.7"
-  instance_class       = "db.t2.micro"
-  name                 = "mydb"
-  username             = "myuser"
-  password             = "mypassword"
-  parameter_group_name = "default.mysql5.7"
-  vpc_security_group_ids = [aws_security_group.my_security_group.id]
-  subnet_group_name     = "my-subnet-group"
-}
-
-
-
 
 
 

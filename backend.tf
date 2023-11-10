@@ -1,5 +1,13 @@
-# Create an S3 bucket
-resource "aws_s3_bucket" "my_s3_bucket" {
-  bucket = "my-eks-s3-bucket"
-  acl = "private"  # Adjust the ACL as needed
+module "s3_bucket" {
+  source = "terraform-aws-modules/s3-bucket/aws"
+
+  bucket = "my-s3-bucket"
+  acl    = "private"
+
+  control_object_ownership = true
+  object_ownership         = "ObjectWriter"
+
+  versioning = {
+    enabled = true
+  }
 }
