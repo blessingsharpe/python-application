@@ -4,11 +4,6 @@ resource "aws_vpc" "docker_vpc" {
 }
 
 
-#creating internet gateway
-resource "aws_internet_gateway" "docker_igw" {
-  vpc_id = aws_vpc.docker_vpc.id
-
-}
 
 # Define two public subnets
 resource "aws_subnet" "public_subnet" {
@@ -23,7 +18,7 @@ resource "aws_subnet" "public_subnet" {
 }
 
 
-# Define two private subnets
+# Define 4 private subnets for RDS databse and worker nodes 
 resource "aws_subnet" "private_subnet" {
   count = length(var.private_subnet_availability_zone)
   vpc_id = aws_vpc.docker_vpc.id
@@ -34,6 +29,8 @@ resource "aws_subnet" "private_subnet" {
     Name = "Private Subnet ${count.index}"
   }
 }
+
+
 
 
 # Create a security group for your Docker registry

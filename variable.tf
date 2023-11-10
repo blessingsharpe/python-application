@@ -18,7 +18,7 @@ variable "public_subnet_cidr" {
 variable "private_subnet_cidr" {
   description = "CIDR blocks for the private subnets"
   type        = list(string)
-  default     = ["10.0.3.0/24", "10.0.4.0/24"]
+  default     = ["10.0.3.0/24", "10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
 }
 
 variable "public_subnet_availability_zone" {
@@ -30,7 +30,7 @@ variable "public_subnet_availability_zone" {
 variable "private_subnet_availability_zone" {
   description = "Availability zone for the private subnet"
    type        = list(string)
-  default     = ["us-west-2c", "us-west-2d"]
+  default     = ["us-west-2c", "us-west-2d", "us-west-2e", "us-west-2f"]
 }
 
 variable "docker_registry_ingress_port" {
