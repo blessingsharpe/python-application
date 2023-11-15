@@ -1,7 +1,31 @@
-# Create a VPC
-resource "aws_vpc" "docker_vpc" {
-  cidr_block = var.vpc_cidr
+
+module "vpc" {
+  source = "terraform-aws-modules/vpc/aws"
+
+  name = "my-vpc"
+  cidr = "10.0.0.0/16"
+
+  azs             = ["us-west-2a", "us-west-2b", ]
+  public_subnets  = ["10.0.0.0/24", "10.0.1.0/24",]
+  private_subnets = ["10.0.3.0/24", "10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+
+  enable_nat_gateway = true
+  enable_vpn_gateway = true
+
+  tags = {
+    Terraform = "true"
+    Environment = "dev"
+  }
 }
+
+
+#to allocate an EIP that the 2 public subnets would use for outbound internet access, this would alocate the EIP outside the VPC configuration
+resource "aws_eip" "nat" {
+  count = 2
+
+  vpc = true
+}
+
 
 
 
