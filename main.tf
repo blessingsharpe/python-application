@@ -1,31 +1,14 @@
+provider "aws" {
+  region = "us-west-2" # Replace with your desired AWS region
+}
 
-module "vpc" {
-  source = "terraform-aws-modules/vpc/aws"
-
-  name = "my-vpc"
-  cidr = "10.0.0.0/16"
-
-  azs             = ["us-west-2a", "us-west-2b", ]
-  public_subnets  = ["10.0.0.0/24", "10.0.1.0/24",]
-  private_subnets = ["10.0.3.0/24", "10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
-
-  enable_nat_gateway = true
-  enable_vpn_gateway = true
+resource "aws_vpc" "my_vpc" {
+  cidr_block = "10.0.0.0/16" # Replace with your desired CIDR block for the VPC
 
   tags = {
-    Terraform = "true"
-    Environment = "dev"
+    Name = "my-vpc"
   }
 }
-
-
-#to allocate an EIP that the 2 public subnets would use for outbound internet access, this would alocate the EIP outside the VPC configuration
-resource "aws_eip" "nat" {
-  count = 2
-
-  vpc = true
-}
-
 
 
 
@@ -33,7 +16,7 @@ resource "aws_eip" "nat" {
 resource "aws_subnet" "public_subnet" {
   #count = length(var.public_subnet_availability_zone)
   count = 2
-  vpc_id = aws_vpc.docker_vpc.id
+  vpc_id = aws_vpc.my_vpc.id
   cidr_block = var.public_subnet_cidr[count.index]
   availability_zone = element(["us-west-2a", "us-west-2b"], count.index)
   map_public_ip_on_launch = true  # This enables auto-assigning public IPs
@@ -46,9 +29,9 @@ resource "aws_subnet" "public_subnet" {
 # Define 4 private subnets for RDS databse and worker nodes in 2 AZs 
 resource "aws_subnet" "private_worker" {                        #for worker nodes                                                               #count = length(var.private_subnet_availability_zone)
   count = 2
-  vpc_id = aws_vpc.docker_vpc.id
+  vpc_id = aws_vpc.my_vpc.id
   cidr_block = var.private_workersubnet_cidr_blocks[count.index]
-  availability_zone = element(["us-west-2c", "us-west-2d"], count.index)
+  availability_zone = element(["us-west-2a", "us-west-2b"], count.index)
   map_public_ip_on_launch = false  # Private subnets don't auto-assign public IPs
   tags = {
     Name = "Private Subnet ${count.index}"
@@ -59,7 +42,7 @@ resource "aws_subnet" "private_worker" {                        #for worker node
 resource "aws_subnet" "private_rds" {
   count = 2
   cidr_block = var.private_rds_subnet_cidr_blocks[count.index]
-  vpc_id = aws_vpc.docker_vpc.id
+  vpc_id = aws_vpc.my_vpc.id
   availability_zone = element(["us-west-2a", "us-west-2b"], count.index)
   tags = {
     Name = "private-rds-subnet-${count.index + 1}"
@@ -69,8 +52,8 @@ resource "aws_subnet" "private_rds" {
 
 
 
-resource "aws_db_subnet_group" "mydb_subnet_group" {
-  name       = "mydb-subnet-group"
+resource "aws_db_subnet_group" "database_sub_group" {
+  name       = "database-subgroup"
   subnet_ids = aws_subnet.private_worker[*].id
 }
 
@@ -82,14 +65,15 @@ resource "aws_db_instance" "my_rds" {
   engine               = "mysql"
   engine_version       = "5.7"
   instance_class       = "db.t2.micro"
-  name                 = "mydb"
+  name                 = "db_name"
   username             = "myuser"
   password             = "mypassword"
   parameter_group_name = "default.mysql5.7"
   #vpc_security_group_ids = [aws_security_group.my_security_group.id]
-  db_subnet_group_name     = aws_db_subnet_group.mydb_subnet_group.name
+  db_subnet_group_name     = aws_db_subnet_group.database_sub_group.name
   multi_az = true # This enables the deployment across multiple availability zones
-
+  skip_final_snapshot = true
+  #final_snapshot_identifier = "terraform-20231115085843696400000001"
  tags = {
     Name = "mydb-instance"
   }
@@ -100,146 +84,74 @@ resource "aws_db_instance" "my_rds" {
 
 
 
+# Security group for RDS database
+resource "aws_security_group" "rds_sg" {
+  name        = "rds-security-group"
+  description = "Security group for RDS database"
 
+  vpc_id = aws_vpc.my_vpc.id # Assuming you have already created 'my_vpc' using the aws_vpc resource
 
-
-
-
-
-
-
-
-
-# Create a security group for your Docker registry
-resource "aws_security_group" "docker_registry_sg" {
-name = "security"
-description = "Security group for Docker registry EC2 instance"
-vpc_id = aws_vpc.docker_vpc.id
-
-  # Define ingress and egress rules as needed for your use case
-  # For example, you might need to open port 5000 for your Docker registry
- ingress {
-    from_port   = var.docker_registry_ingress_port
-    to_port     = var.docker_registry_ingress_port
+  ingress {
+    from_port   = 3306 # MySQL port
+    to_port     = 3306
     protocol    = "tcp"
+    security_groups = [aws_security_group.worker_nodes_sg.id] # Allowing access from worker nodes security group
+  }
+  
+
+  tags = {
+    Name = "rds-security-group"
+  }
+}
+
+
+
+# Security group for worker nodes in two availability zones
+resource "aws_security_group" "worker_nodes_sg" {
+  name        = "worker-nodes-security-group"
+  description = "Security group for worker nodes"
+
+  vpc_id = aws_vpc.my_vpc.id # Assuming you have already created 'my_vpc' using the aws_vpc resource
+
+  # Ingress rule for SSH access from anywhere (example)
+  ingress {
+    from_port   = 22 # SSH port
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Allow SSH access from a secure servr like jump server but i left it open
+  }
+
+  # Example of allowing traffic between worker nodes within the same security group
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1" # Allow all traffic within the security group
+    self        = true
+  }
+
+  # Egress rule allowing all outbound traffic
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Open port 22 for SSH (you might want to restrict this for production)
-  #ingress {
-  # from_port   = 22
-  #to_port     = 22
-  #protocol    = "tcp"
-  #cidr_blocks = ["0.0.0.0/0"]
-  #}
-
-  # Define egress rules as needed
-  egress {
-    from_port   = 0
-    to_port     = 0     # Allow all outbound traffic
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]    # Allow traffic to any destination
+  # Specify the availability zones for the security group
+  lifecycle {
+    create_before_destroy = true
   }
-}
 
+  #availability_zone = element(["us-west-2a", "us-west-2b"], count.index)
 
-
-resource "aws_eks_cluster" "pythonapp_cluster" {
-  name     = "python-eks-cluster"
-  role_arn = aws_iam_role.eks_clusterrole.arn
-  vpc_config {
-    subnet_ids = [for subnet in aws_subnet.public_subnet : subnet.id]
-  }
-  depends_on = [aws_eks_cluster.pythonapp_cluster]
-}
-
-
-#Create IAM roles for your EKS cluster and worker nodes
-resource "aws_iam_role" "eks_clusterrole" {
-  name = "eks-cluster-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Action = "sts:AssumeRole",
-        Effect = "Allow",
-        Principal = {
-          Service = "eks.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-
-
-
-resource "aws_eks_node_group" "pythonapp_workers" {
-  cluster_name    = aws_eks_cluster.pythonapp_cluster.name
-  node_group_name = var.eks_node_group_name
-  node_role_arn   = aws_iam_role.eks_nodesrole.arn
-  subnet_ids      = [for i in aws_subnet.private_worker : i.id]
-  #count = length(var.private_subnet_availability_zone)
-  instance_types  =  var.docker_registry_instance_type # Modify as needed
-  scaling_config {
-    desired_size = 1
-    max_size     = 2
-    min_size     = 1
+  tags = {
+    Name = "worker-nodes-security-group"
   }
 }
 
 
 
 
-resource "aws_iam_role" "eks_nodesrole" {
-  name = "eks-nodes-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Action = "sts:AssumeRole",
-        Effect = "Allow",
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-
-
-#To grant the necessary IAM permissions to the EKS node group to join an EKS cluster, create a IAM policy and give list actions of what the Nodegroup can do in the cluster
-resource "aws_iam_policy" "eks_nodegroup_policy" {
-  name        = "eks-nodegroup-policy"
-  description = "IAM policy for EKS node group to join the cluster"
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Action = [
-          "eks:DescribeCluster",
-          "eks:ListNodegroups",
-          "eks:CreateNodegroup",
-          "eks:TagResource",  # Add more permissions as needed
-        ],
-        Effect   = "Allow",
-        Resource = "*",
-      },
-    ],
-  })
-}
-
-
-
-#Attach the IAM policy to the node group's IAM role. You can use the aws_iam_policy_attachment resource to do this:
-#resource "aws_iam_policy_attachment" "eks_nodegroup_attachment" {
- # name       = "eks-nodegroup-attachment"
-#  count      = length(aws_eks_node_group.pythonapp_workers)   #This ensures that the aws_iam_policy_attachment resource is created for each instance of the node group
- # roles      = [aws_eks_node_group.pythonapp_workers.node_group_name]
- # policy_arn = aws_iam_policy.eks_nodegroup_policy.arn
-#}
 
 
 
@@ -247,16 +159,18 @@ resource "aws_iam_policy" "eks_nodegroup_policy" {
 
 
 
-#To authenticate with your EKS cluster, create an authentication config using a data block instead of resource block
-#resource "aws_eks_cluster_auth" "pythonapp_cluster_auth" {
-#  name = aws-eks-auth
-#}
 
-data "aws_eks_cluster_auth" "pythonapp_cluster_auth" {
-name = "python-eks-cluster"
-#region = "us-east-2"
 
-}
+
+
+
+
+
+
+
+
+
+
 
 
 

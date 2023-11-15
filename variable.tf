@@ -29,17 +29,6 @@ variable "private_rds_subnet_cidr_blocks" {
 }
 
 
-#variable "public_subnet_availability_zone" {
-#  description = "Availability zone for the public subnet"
-#   type        = list(string)
-#  default     = ["us-west-2a", "us-west-2b"]
-#}
-
-#variable "private_subnet_availability_zone" {
-#  description = "Availability zone for the private subnet"
-#   type        = list(string)
-#  default     = ["us-west-2c", "us-west-2d", "us-west-2e", "us-west-2f"]
-#}
 
 variable "docker_registry_ingress_port" {
   description = "Port for Docker registry ingress"
@@ -74,11 +63,6 @@ variable "eks_node_group_name" {
 }
 
 
-#variable "eks_node_instance_type" {
-#  description = "The EC2 instance type for EKS worker nodes."
- # type        = string
- # default     = "t2.micro" # Modify as needed
-#}
 
 variable "eks_node_desired_size" {
   description = "The desired number of worker nodes in the EKS node group."
@@ -99,21 +83,4 @@ variable "eks_node_min_size" {
 }
 
 
-#variable "aws_eks_cluster_auth" {
-#description = "eks cluster authentification "  
-#type        =   string
-#default     =  
-
-#}
-
-
-
-
-#variable "docker_registry_user_data" {
-#  description = "User data script for setting up the Docker registry"
-#  default = <<-EOF
-#              #!/bin/bash
-#              # Your user data script here for setting up the Docker registry
-#              EOF
-#}
 
