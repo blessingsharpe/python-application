@@ -1,13 +1,14 @@
 #To create VPC 
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
+  version = "5.1.2"
 
-  name = "my-vpc"
-  cidr = "10.0.0.0/16"
+  name = var.vpc_name
+  cidr = var.cidr
 
-  azs             = ["us-west-2a", "us-west-2b",]
-  public_subnets = ["10.0.0.0/24", "10.0.1.0/24",]
-  private_subnets  = ["10.0.3.0/24", "10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+  azs             = var.azs
+  public_subnets = var.public_subnets
+  private_subnets  = var.private_subnets
 
   enable_nat_gateway = true
   enable_vpn_gateway = true
@@ -28,21 +29,15 @@ module "vpc" {
 ##To achieve this, allocate the IPs outside the VPC module declaration. I'm using two public subnets for this hence the count=2
 
 resource "aws_eip" "nat" {
-  count = 2
-
-  vpc = true
-}
-
-
+  count = 4
 #Then, pass the allocated IPs as a parameter to this module.
 
-module "vpc" {
-  source = "terraform-aws-modules/vpc/aws"
-
-  # The rest of arguments are omitted for brevity
-
+  vpc = true
   enable_nat_gateway  = true
   single_nat_gateway  = false
   reuse_nat_ips       = true                    # <= Skip creation of EIPs for the NAT Gateways
   external_nat_ip_ids = "${aws_eip.nat.*.id}"   # <= IPs specified here as input to the module
+
 }
+
+
