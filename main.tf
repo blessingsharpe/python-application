@@ -11,7 +11,7 @@ resource "aws_subnet" "public_subnet" {
   count = 2
   vpc_id = aws_vpc.docker_vpc.id
   cidr_block = var.public_subnet_cidr[count.index]
-  availability_zone = element["us-west-2a", "us-west-2b"],  [count.index]
+  availability_zone = element(["us-west-2a", "us-west-2b"], count.index)
   map_public_ip_on_launch = true  # This enables auto-assigning public IPs
   tags = {
     Name = "public-subnet-${count.index + 1}"
@@ -24,7 +24,7 @@ resource "aws_subnet" "private_worker" {                        #for worker node
   count = 2
   vpc_id = aws_vpc.docker_vpc.id
   cidr_block = var.private_workersubnet_cidr_blocks[count.index]
-  availability_zone = element["us-west-2c", "us-west-2d"], [count.index]
+  availability_zone = element(["us-west-2c", "us-west-2d"], count.index)
   map_public_ip_on_launch = false  # Private subnets don't auto-assign public IPs
   tags = {
     Name = "Private Subnet ${count.index}"
@@ -35,7 +35,7 @@ resource "aws_subnet" "private_worker" {                        #for worker node
 resource "aws_subnet" "private_rds" {
   count = 2
   cidr_block = var.private_rds_subnet_cidr_blocks[count.index]
-  vpc_id = aws_vpc.main.id
+  vpc_id = aws_vpc.docker_vpc.id
   availability_zone = element(["us-west-2a", "us-west-2b"], count.index)
   tags = {
     Name = "private-rds-subnet-${count.index + 1}"
@@ -47,7 +47,7 @@ resource "aws_subnet" "private_rds" {
 
 resource "aws_db_subnet_group" "mydb_subnet_group" {
   name       = "mydb-subnet-group"
-  subnet_ids = aws_subnet.private[*].id
+  subnet_ids = aws_subnet.private_worker[*].id
 }
 
 
@@ -154,8 +154,8 @@ resource "aws_eks_node_group" "pythonapp_workers" {
   cluster_name    = aws_eks_cluster.pythonapp_cluster.name
   node_group_name = var.eks_node_group_name
   node_role_arn   = aws_iam_role.eks_nodesrole.arn
-  subnet_ids      = [for i in aws_subnet.private_subnet : i.id]
-  count = length(var.private_subnet_availability_zone)
+  subnet_ids      = [for i in aws_subnet.private_worker : i.id]
+  #count = length(var.private_subnet_availability_zone)
   instance_types  =  var.docker_registry_instance_type # Modify as needed
   scaling_config {
     desired_size = 1
@@ -163,6 +163,9 @@ resource "aws_eks_node_group" "pythonapp_workers" {
     min_size     = 1
   }
 }
+
+
+
 
 resource "aws_iam_role" "eks_nodesrole" {
   name = "eks-nodes-role"
