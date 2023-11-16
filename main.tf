@@ -157,20 +157,140 @@ resource "aws_security_group" "worker_nodes_sg" {
 
 
 
+#creating EKS CLUSTER
+resource "aws_eks_cluster" "my_cluster" {
+  name     = "my-eks-cluster"
+  role_arn = aws_iam_role.eks_clusterrole.arn
+
+  vpc_config {
+    subnet_ids = [for subnet in aws_subnet.public_subnet : subnet.id] 
+  }
+  depends_on = [aws_eks_cluster.my_cluster]
+}
+
+
+#creating IAM ROLE for EKS SERVICE
+resource "aws_iam_role" "eks_clusterrole" {
+  name = "eks-cluster-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Effect = "Allow",
+        Principal = {
+          Service = "eks.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+
+# Attach policy to EKS cluster role
+resource "aws_iam_policy_attachment" "eks_cluster_policy_attachment" {
+  name       = "eks-cluster-policy-attachment"
+  roles      = [aws_iam_role.eks_cluster_role.name]
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+}
 
 
 
 
 
+#creating NODEGROUP
+resource "aws_eks_node_group" "my_worker_nodes" {
+  cluster_name    = aws_eks_cluster.my_cluster.name
+  node_group_name = var.eks_node_group_name
+  node_role_arn   = aws_iam_role.eks_nodesrole.arn
+  subnet_ids      = [for i in aws_subnet.private_worker : i.id]
+  #count = length(var.private_subnet_availability_zone)
+  instance_types  =  var.my_instance_type # Modify as needed
+  scaling_config {
+    desired_size = 1
+    max_size     = 2
+    min_size     = 1
+  }
+}
 
 
 
+#creating IAM ROLE for NODEGROUP
+resource "aws_iam_role" "eks_nodesrole" {
+  name = "node-group-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Effect = "Allow",
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
 
 
 
+#To grant the necessary IAM permissions to the EKS node group to join an EKS cluster, create a IAM policy and give list actions of what the Nodegroup can do in the cluster
+# Attach policy to NODEGROUP
+resource "aws_iam_policy" "my_nodegroup_policy" {
+  name        = "my-nodegroup-policy"
+  description = "IAM policy for EKS node group to join the cluster"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = [
+          "eks:DescribeCluster",
+          "eks:ListNodegroups",
+          "eks:CreateNodegroup",
+          "eks:TagResource", 
+          "eks:DescribeInstances",
+          "eks:DescribeRegions",
+          "eks:DescribeRouteTables",
+          "eks:DescribeSecurityGroups",
+          "eks:DescribeSubnets",
+          "eks:DescribeVolumes",
+          "eks:CreateSecurityGroup",
+          "eks:CreateTags",
+          "eks:CreateVolume",
+          "eks:CreateVpc",
+          "eks:CreateVpcEndpoint",
+          "eks:ModifyInstanceAttribute",
+          "eks:AttachVolume",
+          "eks:AuthorizeSecurityGroupIngress",
+          "eks:DeleteTags",
+          "eks:DeleteVolume",                  # Add more permissions as needed
+        ],
+        Effect   = "Allow",
+        Resource = "*",
+      },
+    ],
+  })
+}
 
 
 
+# Attach IAM Policy to EKS Node Group Role
+resource "aws_iam_policy_attachment" "eks_nodegroup_policy_attachment" {
+  name       = "eks-nodegroup-policy-attachment"
+  roles      = [aws_iam_role.eks_nodesrole.name]
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+  #policy_arn = aws_iam_policy.my_nodegroup_policy.arn
+}
 
 
 
+# Attach additional policies as needed for worker nodes
+# For example: like AMAZONCNI_Policy
+resource "aws_iam_policy_attachment" "eks_node_cni_policy_attachment" {
+  name       = "eks-node-cni-policy-attachment"
+  roles      = [aws_iam_role.eks_node_role.name]
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+}

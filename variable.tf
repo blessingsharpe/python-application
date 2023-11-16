@@ -30,18 +30,18 @@ variable "private_rds_subnet_cidr_blocks" {
 
 
 
-variable "docker_registry_ingress_port" {
+variable "my_ingress_port" {
   description = "Port for Docker registry ingress"
   default     = 5000
 }
 
-variable "docker_registry_ami" {
+variable "my_ami" {
   description = "AMI for the Docker registry EC2 instance"
   default     = "ami-083ac598d805fbb10" # for ubuntu 20
 
 }
 
-variable "docker_registry_instance_type" {
+variable "my_instance_type" {
   description = "EC2 instance type for the Docker registry"
   type        = list(string)
   default     = ["t2.medium"]
@@ -51,7 +51,7 @@ variable "docker_registry_instance_type" {
 variable "eks_cluster_name" {
   description = "The name of the EKS cluster."
   type        = string
-  default     = "python-eks-cluster" # You can change this to your desired cluster name
+  default     = "my-eks-cluster" # You can change this to your desired cluster name
 }
 
 
@@ -59,7 +59,7 @@ variable "eks_cluster_name" {
 variable "eks_node_group_name" {
   description = "The name of the EKS node group."
   type        = string
-  default     = "pythonapp-node-group" # You can change this to your desired node group name
+  default     = "my-node-group" # You can change this to your desired node group name
 }
 
 
