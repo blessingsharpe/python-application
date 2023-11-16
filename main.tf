@@ -4,7 +4,8 @@ provider "aws" {
 
 resource "aws_vpc" "my_vpc" {
   cidr_block = "10.0.0.0/16" # Replace with your desired CIDR block for the VPC
-
+  enable_dns_support   = true
+  enable_dns_hostnames = true
   tags = {
     Name = "my-vpc"
   }
@@ -48,6 +49,26 @@ resource "aws_subnet" "private_rds" {
     Name = "private-rds-subnet-${count.index + 1}"
   }
 }
+
+
+
+
+#resource "aws_eip" "nat_eip_" {
+#  vpc      = true
+#  count    = 2
+#}
+
+
+
+
+
+
+#resource "aws_nat_gateway" "nat_gateway" {
+#  count = 2
+#  allocation_id = aws_eip.nat_eip.id
+ # subnet_id     = aws_subnet.public_subnet[count.index]
+#}
+
 
 
 
@@ -171,7 +192,7 @@ resource "aws_eks_cluster" "my_cluster" {
 
 #creating IAM ROLE for EKS SERVICE
 resource "aws_iam_role" "eks_clusterrole" {
-  name = "eks-cluster-role"
+  name = "eks-clusterrole"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -255,4 +276,13 @@ resource "aws_iam_policy_attachment" "eks_node_cni_policy_attachment" {
   name       = "eks-node-cni-policy-attachment"
   roles      = [aws_iam_role.eks_nodesrole.name]
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+}
+
+
+
+# Attach AmazonEC2ContainerRegistryReadOnly to nodegroup role 
+resource "aws_iam_policy_attachment" "amazon_ec2_container_regisetry_policy_attachment" {
+  name       = "amazon-ec2-container-registery-read-only-policy-attachment"
+  roles      = [aws_iam_role.eks_nodesrole.name]
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
