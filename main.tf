@@ -191,7 +191,7 @@ resource "aws_iam_role" "eks_clusterrole" {
 # Attach policy to EKS cluster role
 resource "aws_iam_policy_attachment" "eks_cluster_policy_attachment" {
   name       = "eks-cluster-policy-attachment"
-  roles      = [aws_iam_role.eks_cluster_role.name]
+  roles      = [aws_iam_role.eks_clusterrole.name]
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 }
 
@@ -237,47 +237,9 @@ resource "aws_iam_role" "eks_nodesrole" {
 
 
 #To grant the necessary IAM permissions to the EKS node group to join an EKS cluster, create a IAM policy and give list actions of what the Nodegroup can do in the cluster
-# Attach policy to NODEGROUP
-resource "aws_iam_policy" "my_nodegroup_policy" {
-  name        = "my-nodegroup-policy"
-  description = "IAM policy for EKS node group to join the cluster"
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Action = [
-          "eks:DescribeCluster",
-          "eks:ListNodegroups",
-          "eks:CreateNodegroup",
-          "eks:TagResource", 
-          "eks:DescribeInstances",
-          "eks:DescribeRegions",
-          "eks:DescribeRouteTables",
-          "eks:DescribeSecurityGroups",
-          "eks:DescribeSubnets",
-          "eks:DescribeVolumes",
-          "eks:CreateSecurityGroup",
-          "eks:CreateTags",
-          "eks:CreateVolume",
-          "eks:CreateVpc",
-          "eks:CreateVpcEndpoint",
-          "eks:ModifyInstanceAttribute",
-          "eks:AttachVolume",
-          "eks:AuthorizeSecurityGroupIngress",
-          "eks:DeleteTags",
-          "eks:DeleteVolume",                  # Add more permissions as needed
-        ],
-        Effect   = "Allow",
-        Resource = "*",
-      },
-    ],
-  })
-}
-
-
 
 # Attach IAM Policy to EKS Node Group Role
+#This policy allows Amazon EKS worker nodes to connect to Amazon EKS Clusters
 resource "aws_iam_policy_attachment" "eks_nodegroup_policy_attachment" {
   name       = "eks-nodegroup-policy-attachment"
   roles      = [aws_iam_role.eks_nodesrole.name]
@@ -291,6 +253,6 @@ resource "aws_iam_policy_attachment" "eks_nodegroup_policy_attachment" {
 # For example: like AMAZONCNI_Policy
 resource "aws_iam_policy_attachment" "eks_node_cni_policy_attachment" {
   name       = "eks-node-cni-policy-attachment"
-  roles      = [aws_iam_role.eks_node_role.name]
+  roles      = [aws_iam_role.eks_nodesrole.name]
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 }
