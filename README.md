@@ -58,3 +58,7 @@ From the infrastructure above, the VPC would be provisioned first as the foundat
 resource "aws_vpc" "docker_vpc" {
   cidr_block = var.vpc_cidr
 }
+
+
+
+terraform apply -auto-approve

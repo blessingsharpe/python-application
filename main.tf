@@ -18,7 +18,7 @@ resource "aws_subnet" "public_subnet" {
   #count = length(var.public_subnet_availability_zone)
   count = 2
   vpc_id = aws_vpc.my_vpc.id
-  cidr_block = var.public_subnet_cidr[count.index]
+  cidr_block = var.public_subnet_cidr_blocks[count.index]
   availability_zone = element(["us-west-2a", "us-west-2b"], count.index)
   map_public_ip_on_launch = true  # This enables auto-assigning public IPs
   tags = {
@@ -28,10 +28,10 @@ resource "aws_subnet" "public_subnet" {
 
 
 # Define 4 private subnets for RDS databse and worker nodes in 2 AZs 
-resource "aws_subnet" "private_worker" {                        #for worker nodes                                                               #count = length(var.private_subnet_availability_zone)
+resource "aws_subnet" "private_subnet" {                        #for worker nodes                                                               #count = length(var.private_subnet_availability_zone)
   count = 2
   vpc_id = aws_vpc.my_vpc.id
-  cidr_block = var.private_workersubnet_cidr_blocks[count.index]
+  cidr_block = var.private_subnet_cidr_blocks[count.index]
   availability_zone = element(["us-west-2a", "us-west-2b"], count.index)
   map_public_ip_on_launch = false  # Private subnets don't auto-assign public IPs
   tags = {
@@ -40,7 +40,7 @@ resource "aws_subnet" "private_worker" {                        #for worker node
 }
 
 
-resource "aws_subnet" "private_rds" {
+resource "aws_subnet" "subnet_rds" {
   count = 2
   cidr_block = var.private_rds_subnet_cidr_blocks[count.index]
   vpc_id = aws_vpc.my_vpc.id
@@ -53,21 +53,6 @@ resource "aws_subnet" "private_rds" {
 
 
 
-#resource "aws_eip" "nat_eip_" {
-#  vpc      = true
-#  count    = 2
-#}
-
-
-
-
-
-
-#resource "aws_nat_gateway" "nat_gateway" {
-#  count = 2
-#  allocation_id = aws_eip.nat_eip.id
- # subnet_id     = aws_subnet.public_subnet[count.index]
-#}
 
 
 
@@ -75,7 +60,7 @@ resource "aws_subnet" "private_rds" {
 
 resource "aws_db_subnet_group" "database_sub_group" {
   name       = "database-subgroup"
-  subnet_ids = aws_subnet.private_worker[*].id
+  subnet_ids = aws_subnet.subnet_rds[*].id
 }
 
 
@@ -101,7 +86,19 @@ resource "aws_db_instance" "my_rds" {
 }
 
 
+# Security group for worker nodes
+resource "aws_security_group" "worker_nodes_sg" {
+  name        = "worker-nodes-sg"
+  description = "Security group for worker nodes"
 
+  vpc_id = aws_vpc.my_vpc.id # Assuming you have already created 'my_vpc' using the aws_vpc resource
+
+  # Define ingress/egress rules for worker nodes here if needed
+
+  tags = {
+    Name = "worker-nodes-sg"
+  }
+}
 
 
 
@@ -127,70 +124,139 @@ resource "aws_security_group" "rds_sg" {
 
 
 
-# Security group for worker nodes in two availability zones
-resource "aws_security_group" "worker_nodes_sg" {
-  name        = "worker-nodes-security-group"
-  description = "Security group for worker nodes"
+
+
+
+# Security group for public subnet resources
+resource "aws_security_group" "public_sg" {
+  name        = "public-sg"
+  description = "Security group for public"
 
   vpc_id = aws_vpc.my_vpc.id # Assuming you have already created 'my_vpc' using the aws_vpc resource
-
-  # Ingress rule for SSH access from anywhere (example)
-  ingress {
-    from_port   = 22 # SSH port
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Allow SSH access from a secure servr like jump server but i left it open
+   tags = {
+    Name = "public-sg"
   }
+}
 
-  # Example of allowing traffic between worker nodes within the same security group
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1" # Allow all traffic within the security group
-    self        = true
+  #Security group for traffic rules
+  # Ingress rule 
+  resource "aws_security_group_rule" "sg_ingress_public_443" {
+    security_group_id = aws_security_group.public_sg.id
+    type              = "ingress"
+    from_port         = 443
+    to_port           = 443
+    protocol          = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  } 
+
+
+  resource "aws_security_group_rule" "sg_ingress_public_80" {
+    security_group_id = aws_security_group.public_sg.id
+    type              = "ingress"
+    from_port         = 80
+    to_port           = 80
+    protocol          = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
+ 
 
-  # Egress rule allowing all outbound traffic
-  egress {
+  ## Egress rule
+  resource "aws_security_group_rule" "sg_egress_public" {
+    security_group_id = aws_security_group.public_sg.id
+    type              = "egress"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
-  }
+}
+  
+  
+  # CReate Security group for data plane
+  resource "aws_security_group" "data_plane_sg" {
+    name   = "data-plane-sg"
+    vpc_id = aws_vpc.my_vpc.id
 
-  # Specify the availability zones for the security group
-  lifecycle {
-    create_before_destroy = true
-  }
-
-  #availability_zone = element(["us-west-2a", "us-west-2b"], count.index)
-
-  tags = {
-    Name = "worker-nodes-security-group"
+    tags = {
+    Name = "k8s-data-plane-sg"
   }
 }
 
 
+# Security group traffic rules
+## Ingress rule
+  resource "aws_security_group_rule" "nodes" {
+    description              = "Allow nodes to communicate with each other"
+    security_group_id = aws_security_group.data_plane_sg.id
+    type              = "ingress"
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "-1"
+    cidr_blocks = flatten([var.private_subnet_cidr_blocks, var.public_subnet_cidr_blocks])
+}
 
+  
+  resource "aws_security_group_rule" "nodes_inbound" {
+    description              = "Allow Kubelets and pods to receive communication from the cluster control plane"
+    security_group_id = aws_security_group.data_plane_sg.id
+    type              = "ingress"
+    from_port   = 1025
+    to_port     = 65535
+    protocol    = "tcp"
+    cidr_blocks = flatten([var.private_subnet_cidr_blocks])
+}
 
+  
 
-
-
-
-
-#creating EKS CLUSTER
-resource "aws_eks_cluster" "my_cluster" {
-  name     = "my-eks-cluster"
-  role_arn = aws_iam_role.eks_clusterrole.arn
-
-  vpc_config {
-    subnet_ids = [for subnet in aws_subnet.public_subnet : subnet.id] 
-  }
-  depends_on = [aws_eks_cluster.my_cluster]
+  ## Egress rule
+  resource "aws_security_group_rule" "node_outbound" {
+    security_group_id = aws_security_group.data_plane_sg.id
+    type              = "egress"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
 }
 
 
-#creating IAM ROLE for EKS SERVICE
+  # Security group for control plane
+  resource "aws_security_group" "control_plane_sg" {
+    name   = "k8s-control-plane-sg"
+    vpc_id = aws_vpc.my_vpc.id
+
+    tags = {
+    Name = "k8s-control-plane-sg"
+  }
+}
+
+# Security group traffic rules
+## Ingress rule
+  resource "aws_security_group_rule" "control_plane_inbound" {
+    security_group_id = aws_security_group.control_plane_sg.id
+    type              = "ingress"
+    from_port   = 0
+    to_port     = 65535
+    protocol          = "tcp"
+    cidr_blocks = flatten([var.private_subnet_cidr_blocks, var.public_subnet_cidr_blocks])
+}
+
+## Egress rule
+  resource "aws_security_group_rule" "control_plane_outbound" {
+    security_group_id = aws_security_group.control_plane_sg.id
+    type              = "egress"
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+}
+
+  
+
+
+
+
+
+
+#creating IAM ROLE for EKS cluster
 resource "aws_iam_role" "eks_clusterrole" {
   name = "eks-clusterrole"
 
@@ -209,31 +275,52 @@ resource "aws_iam_role" "eks_clusterrole" {
 }
 
 
+
+
+
+
+#creating EKS CLUSTER
+resource "aws_eks_cluster" "my_cluster" {
+  name     = "my-eks-cluster"
+  role_arn = aws_iam_role.eks_clusterrole.arn
+
+  vpc_config {
+     endpoint_private_access = true
+    endpoint_public_access  = true
+    subnet_ids = [for subnet in aws_subnet.public_subnet : subnet.id] 
+
+  }
+  #depends_on = [
+  #  aws_iam_role_policy_attachment.eks-AmazonEKSClusterPolicy,
+  #  aws_iam_role_policy_attachment.eks-AmazonEKSVPCResourceController,
+   # aws_iam_role_policy_attachment.eks-AmazonEKSServicePolicy
+  #]
+   
+}
+
 # Attach policy to EKS cluster role
-resource "aws_iam_policy_attachment" "eks_cluster_policy_attachment" {
-  name       = "eks-cluster-policy-attachment"
-  roles      = [aws_iam_role.eks_clusterrole.name]
+resource "aws_iam_role_policy_attachment" "eks_cluster_policy_attachment" {
+  role     = aws_iam_role.eks_clusterrole.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 }
 
 
-
-
-
-#creating NODEGROUP
-resource "aws_eks_node_group" "my_worker_nodes" {
-  cluster_name    = aws_eks_cluster.my_cluster.name
-  node_group_name = var.eks_node_group_name
-  node_role_arn   = aws_iam_role.eks_nodesrole.arn
-  subnet_ids      = [for i in aws_subnet.private_worker : i.id]
-  #count = length(var.private_subnet_availability_zone)
-  instance_types  =  var.my_instance_type # Modify as needed
-  scaling_config {
-    desired_size = 1
-    max_size     = 2
-    min_size     = 1
-  }
+resource "aws_iam_role_policy_attachment" "eks_service_policy_attachment" {
+  role      = aws_iam_role.eks_clusterrole.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
 }
+
+
+resource "aws_iam_role_policy_attachment" "eks_vpcresource_controller_attachment" {
+  role      = aws_iam_role.eks_clusterrole.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
+}
+
+
+
+
+
+
 
 
 
@@ -257,32 +344,69 @@ resource "aws_iam_role" "eks_nodesrole" {
 
 
 
+
+
+
+
+#creating NODEGROUP
+resource "aws_eks_node_group" "my_worker_nodes" {
+  cluster_name    = aws_eks_cluster.my_cluster.name
+  node_group_name = var.eks_node_group_name
+  node_role_arn   = aws_iam_role.eks_nodesrole.arn
+  subnet_ids      = [for i in aws_subnet.private_subnet : i.id]
+  #count = length(var.private_subnet_availability_zone)
+  instance_types  =  var.my_instance_type # Modify as needed
+  scaling_config {
+    desired_size = 1
+    max_size     = 2
+    min_size     = 1
+  }
+
+  #depends_on = [
+  #  aws_iam_role_policy_attachment.node-group-AmazonEKSWorkerNodePolicy,
+  #  aws_iam_role_policy_attachment.node-group-AmazonEKS_CNI_Policy,
+  #  aws_iam_role_policy_attachment.node-group-AmazonEC2ContainerRegistryReadOnly,
+  #]
+
+}
+
+
 #To grant the necessary IAM permissions to the EKS node group to join an EKS cluster, create a IAM policy and give list actions of what the Nodegroup can do in the cluster
 
 # Attach IAM Policy to EKS Node Group Role
 #This policy allows Amazon EKS worker nodes to connect to Amazon EKS Clusters
-resource "aws_iam_policy_attachment" "eks_nodegroup_policy_attachment" {
-  name       = "eks-nodegroup-policy-attachment"
-  roles      = [aws_iam_role.eks_nodesrole.name]
+resource "aws_iam_role_policy_attachment" "eks_nodegroup_policy_attachment" {
+  role      = aws_iam_role.eks_nodesrole.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-  #policy_arn = aws_iam_policy.my_nodegroup_policy.arn
 }
 
 
 
 # Attach additional policies as needed for worker nodes
 # For example: like AMAZONCNI_Policy
-resource "aws_iam_policy_attachment" "eks_node_cni_policy_attachment" {
-  name       = "eks-node-cni-policy-attachment"
-  roles      = [aws_iam_role.eks_nodesrole.name]
+resource "aws_iam_role_policy_attachment" "eks_node_cni_policy_attachment" {
+  role      = aws_iam_role.eks_nodesrole.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 }
 
 
 
 # Attach AmazonEC2ContainerRegistryReadOnly to nodegroup role 
-resource "aws_iam_policy_attachment" "amazon_ec2_container_regisetry_policy_attachment" {
-  name       = "amazon-ec2-container-registery-read-only-policy-attachment"
-  roles      = [aws_iam_role.eks_nodesrole.name]
+resource "aws_iam_role_policy_attachment" "ec2_container_registry_policy_attachment" {
+  role     = aws_iam_role.eks_nodesrole.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
+
+
+
+#resource "aws_iam_policy_attachment" "eks_vpc_controller_attachment" {
+#  name       = "eks-vpc-controller-attachment"
+ # roles      = [aws_iam_role.eks_nodesrole.name]
+#  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
+#}
+
+ 
+
+
+
+
