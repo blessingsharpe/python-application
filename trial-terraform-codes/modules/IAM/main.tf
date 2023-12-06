@@ -1,14 +1,10 @@
-variable "eks_user_name" {
-  description = "Name for the IAM user"
-}
-
 resource "aws_iam_user" "eks_user" {
   name = var.eks_user_name
   # Specify additional user configuration if needed
 }
 
 resource "aws_iam_role" "eks_cluster_role" {
-  name = "eks-cluster-role"
+  name = var.eks-cluster-role
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -36,5 +32,7 @@ resource "aws_iam_role_policy_attachment" "eks_node_policy_attachment" {
   role       = aws_iam_role.eks_cluster_role.name
   # Attach other policies if required
 }
+
+
 
 # Add other IAM resources as needed (e.g., groups, policies, etc.)
