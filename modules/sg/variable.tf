@@ -21,6 +21,11 @@ variable "ingress_cidr_blocks" {
  }
 
 
+variable "egress_cidr_blocks" {
+   type    = any
+   default = []
+ }
+
 
  variable "ingress_rules" {
    type    = any
@@ -34,6 +39,17 @@ variable "ingress_cidr_blocks" {
   default = []
 }
    
+
+variable "egress_rules" {
+  description = "List of egress rules for the RDS security group"
+  type        = list(object({
+    from_port   = 0
+    to_port     = 65535
+    protocol    = string
+    cidr_blocks = list(string)
+  }))
+  default = []
+}
 
 
 

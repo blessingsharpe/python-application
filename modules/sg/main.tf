@@ -8,33 +8,8 @@ module "sg" {
   #ingress_cidr_blocks      = var.ingress_cidr_blocks
   #ingress_rules            = var.ingress_rules
   #ingress_with_cidr_blocks = [
-  ingress_rules = [
-    {
-      from_port   = 80
-      to_port     = 80
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-    },
-    # Add more ingress rules as needed
-  ]
+  ingress_rules = var.ingress_rules
 
-  egress_rules = [
-    {
-      from_port   = 0
-      to_port     = 65535
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-    },
-    # Add more egress rules as needed
-  ]
+  egress_rules =var.egress_rules
 }
 
-
-
-
-
-
-
-
-
-}

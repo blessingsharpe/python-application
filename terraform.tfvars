@@ -13,8 +13,9 @@ private_rds_subnet_cidrs = ["10.0.5.0/24", "10.0.6.0/24"]
 security_group_name = "vpc-sg"
 security_group_description = "Security group for user-service with custom ports open within VPC, and PostgreSQL publicly open"
 
-ingress_cidr_blocks   ="10.10.0.0/16"
-ingress_rules = "https-443-tcp"
+ingress_cidr_blocks   ="0.0.0.0/0"
+egress_cidr_blocks = "0.0.0.0/0"
+
 eks_cluster_name = "my-eks-cluster"
 
 eks_role_name = "my-cluster-role"
