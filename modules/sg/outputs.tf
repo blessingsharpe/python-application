@@ -1,7 +1,9 @@
-output "security_group_id" {
+output "vpc_security_group_ids" {
   description = "The ID of the created security group"
-  value       = aws_security_group.main.id
+  value       = module.sg.vpc_security_group_ids
 }
+
+
 
 # Add more outputs if required
 
