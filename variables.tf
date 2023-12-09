@@ -2,39 +2,46 @@
 
 variable "aws_region" {
   description = "AWS region where the resources will be created"
+  type = string
+  default = ""
 }
 
 
 variable "vpc_cidr_name" {
   description = "name for the VPC"
    type = string
-  default     = "my-vpc"
+   default = ""
 }
 
 
 
 variable "vpc_cidr_block" {
   description = "CIDR block for the VPC"
+  type        = string
+  default = ""
 }
 
 
 variable "public_subnet" {
   description = "CIDR blocks for the public subnets"
-   type        = list(string)
+   type        = list(any)
+   default = []
 }
 
 
 variable "private_subnet {
   description = "CIDR blocks for the private subnets"
-  type        = list(string)
+  type        = list(any)
+  default = []
   
 }
 
 
 
 variable "availability_zones" {
-  type  = list(string)
+  type  = list(any)
   description = "List of availability zones for the selected region"
+  default = []
 }
 
 
@@ -42,7 +49,6 @@ variable "availability_zones" {
 variable "enable_nat_gateway" {
   description = "Whether to enable NAT Gateway"
   type        = bool
-  default     = true
 }
 
 
@@ -50,14 +56,12 @@ variable "enable_nat_gateway" {
 variable "enable_dns_support" {
   description = "Whether to enable DNS support"
   type        = bool
-  default     = true
 }
 
 
 variable "enable_dns_hostnames" {
   description = "Whether to enable DNS hostnames"
   type        = bool
-  default     = true
 }
 
 
@@ -65,7 +69,6 @@ variable "enable_dns_hostnames" {
 variable "enable_vpn_gateway" {
   description = "Whether to enable VPN Gateway"
   type        = bool
-  default     = false
 }
 
 
@@ -73,17 +76,13 @@ variable "enable_vpn_gateway" {
 
 variable "tags" {
   description = "A map of tags to apply to resources"
-  type        = map(string)
-  default     = {
-    Environment = "Production"
-    Owner       = "Terraform"
-    // Add more tags as needed
-  }
+  type        = map(any)
+  default = {}
 }
 
-variable "private_rds_subnet_cidr_blocks" {
-  description = "The CIDR block for the private subnet for rds"
-}
+#variable "private_rds_subnet_cidr_blocks" {
+ # description = "The CIDR block for the private subnet for rds"
+#}
 
 
 
@@ -98,18 +97,20 @@ variable "private_rds_subnet_cidr_blocks" {
 variable "security_group_name" {
   description = "The name of the security group"
   type        = string
+  default = ""
 }
 
 
 variable "security_group_description" {
   description = "The description of the security group"
   type        = string
+  default = ""
 }
 
 variable "vpc_id" {
    type    = string
-   default = "vpc id"
- }
+   default = ""
+}
 
 
 variable "ingress_cidr_blocks" {
@@ -154,3 +155,178 @@ variable "egress_rules" {
    type    = any
    default = []
  } 
+
+
+
+#####VARIABLES FOR RDS DATABASE
+
+variable "rds_instance_name" {
+  description = "The name of the RDS instance"
+  type        = string
+}
+
+variable "db_subnet_group_name" {
+  description = "The name of the DB subnet group"
+  type        = string
+}
+
+
+variable "create_db_subnet_group" {
+  description = "to create subnet group for db"
+  type        = bool
+}  
+
+variable "subnet_ids" {
+  description = "List of subnet IDs for the DB subnet group"
+  type        = list(string)[]
+} 
+
+
+
+
+variable "identifier" {
+  description = "db identifier"
+  type        = list(string)
+}
+
+
+
+variable "engine" {
+  description = "db engine"
+  type        = string
+}
+
+
+
+variable "engine_version" {
+  description = "db engine version"
+  type        = (list)string
+}
+
+
+
+
+variable "instance_class" {
+  description = "db instance class"
+  type        = (list)string
+}
+
+
+
+
+variable "allocated_storage" {
+  description = "db allocated storage"
+  type        = (list)string
+}
+
+
+
+
+variable "db_name" {
+  description = "db name"
+  type        = string
+}
+  
+
+
+variable "username" {
+  description = "db username"
+  type        = string
+}  
+
+
+
+
+variable "password" {
+  description = "db password"
+  type        = string
+}  
+  
+
+
+variable "port" {
+  description = "db port number for mysql"
+  type        = string
+}  
+
+
+
+
+variable "vpc_security_group_ids" {
+  description = "vpc security group id"
+  type        = string
+}  
+
+
+
+#####VARIABLES FOR EKS CLUSTER
+variable "eks_cluster_name" {
+  description = "Name for the EKS cluster"
+  type        = string""
+}
+
+
+variable "eks_cluster_version" {
+  description = "version for the EKS cluster"
+  type        = string
+}
+
+
+
+variable "cluster_endpoint_public_access" {
+  description = "eks cluster endpoint for public access"
+  type        = bool
+}
+
+
+
+variable "cluster_endpoint_private_access" {
+  description = "eks cluster endpoint for private access"
+  type        = bool
+}
+
+
+
+variable "cluster_addons" {
+  description = "add ons for eks cluster"
+  type        = any{}
+}
+
+
+variable "version" {
+  description = "terrafrom version"
+  type        = string
+}
+
+
+
+
+
+
+###### VARIABLES FOR NODEGROUP
+variable "instance_types" {
+  description = "instance type for worker nodes"
+  type        = string
+}
+
+
+
+
+
+
+
+
+
+
+variable "node_group_name" {
+  description = "Name for the node group"
+}
+
+
+
+
+
+
+
+
+

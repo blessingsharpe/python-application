@@ -1,3 +1,5 @@
+####MODULE FOR VPC
+
 module "vpc" {
   source = "./modules/vpc"
 
@@ -17,10 +19,10 @@ module "vpc" {
 }
 
 
-
+####MODULE FOR SECURITY GROUP
 
 module "sg" {
-  source  = "terraform-aws-modules/security-group/aws"
+  source  = "./modules/sg"
   version = "5.1.0"
   name        = var.security_group_name
   description = var.security_group_description
@@ -49,4 +51,82 @@ module "sg" {
     # Add more egress rules as needed
   ]
 }
+
+
+
+
+####MODULE FOR RDS DATABASE
+module "rds" {
+  source = "./modules/rds"
+
+
+  identifier = var.identifier
+
+  engine            = var.engine
+  engine_version    = var.engine_version
+  instance_class    = var.instance_class
+  allocated_storage = var.allocated_storage
+
+  db_name  = var.db_name
+  username = var.username
+  password = var.password
+  port     = var.port
+
+#iam_database_authentication_enabled = true
+
+  vpc_security_group_ids = module.sg.vpc_security_group_ids
+
+
+# DB subnet group
+  create_db_subnet_group = var.create_db_subnet_group
+  subnet_ids             = var.subnet_ids
+  }
+
+
+
+
+
+
+
+
+####MODULE FOR EKS CLUSTER
+module "eks" {
+  source  = "./modules/eks"
+  version = var.version
+  #version = "~> 19.0"
+
+  cluster_name    = var.eks_cluster_name
+  cluster_version = var.eks_cluster_version
+
+  cluster_endpoint_private_access  = var.cluster_endpoint_private_access
+  cluster_endpoint_public_access  = var.cluster_endpoint_public_access
+
+  cluster_addons = var.cluster_addons
+
+  vpc_id                   = var.vpc_id
+  subnet_ids               = var.subnet_ids
+  
+
+  #EKS Managed Node Group(s)
+  eks_managed_node_group_defaults = {
+    instance_types = var.instance_types
+    vpc_security_group_ids = var.vpc_security_group_ids
+  }
+
+  eks_managed_node_groups = {
+    blue = {}
+    green = {
+      min_size     = 1
+      max_size     = 5
+      desired_size = 1
+
+      instance_types = var.instance_types
+      capacity_type  = var.capacity_type
+    }
+  
+  }
+
+}
+
+
 
