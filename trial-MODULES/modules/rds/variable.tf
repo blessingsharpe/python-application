@@ -1,14 +1,37 @@
+variable "rds_instance_name" {
+  description = "The name of the RDS instance"
+  type        = string
+}
+
+variable "db_subnet_group_name" {
+  description = "The name of the DB subnet group"
+  type        = string
+}
+
+
+variable "create_db_subnet_group" {
+  description = "to create subnet group for db"
+  type        = string
+}  
+
+variable "subnet_ids" {
+  description = "List of subnet IDs for the DB subnet group"
+  type        = list(string)
+} 
+
+
+
+
 variable "identifier" {
   description = "db identifier"
   type        = string
-  default = "demodb"
-
 }
+
+
 
 variable "engine" {
   description = "db engine"
   type        = string
-  default =  "mysql"
 }
 
 
@@ -16,7 +39,6 @@ variable "engine" {
 variable "engine_version" {
   description = "db identifier"
   type        = string
-  default = "5.7"
 }
 
 
@@ -25,7 +47,6 @@ variable "engine_version" {
 variable "instance_class" {
   description = "db instance class"
   type        = string
-  default = "db.m6i.large"
 }
 
 
@@ -34,7 +55,6 @@ variable "instance_class" {
 variable "allocated_storage" {
   description = "db identifier"
   type        = string
-  default = "5"
 }
 
 
@@ -43,7 +63,6 @@ variable "allocated_storage" {
 variable "db_name" {
   description = "db name"
   type        = string
-  default = "benny_db"
 }
   
 
@@ -51,7 +70,6 @@ variable "db_name" {
 variable "username" {
   description = "db username"
   type        = string
-  default = "benny"
 }  
 
 
@@ -60,7 +78,6 @@ variable "username" {
 variable "password" {
   description = "db password"
   type        = string
-  default = "benny"
 }  
   
 
@@ -68,20 +85,12 @@ variable "password" {
 variable "port" {
   description = "db port number for mysql"
   type        = string
-  default = "3306"
 }  
+
 
 
 
 variable "vpc_security_group_ids" {
   description = "vpc security group id"
-  type        = list(string)
-  default = ["sg-06444ebc232ee17ed"]
-}
-
-
-variable "iam_database_authentication_enabled" {
-  description = "if to enable authentication for database"
-  type        = bool
-  default = true
-}
+  type        = string
+}  

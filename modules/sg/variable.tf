@@ -1,59 +1,35 @@
-variable "security_group_name" {
-  description = "The name of the security group"
+variable "security_group_name_vpc" {
+  description = "The name of the security group for vpc"
   type        = string
+  default = "vpc-sg-group"
 }
 
 
-variable "security_group_description" {
-  description = "The description of the security group"
+variable "security_group_description_vpc" {
+  description = "The description of the security group for vpc"
   type        = string
+  default = "vpc-sg-group-description"
 }
+
+
+
+variable "security_group_name_rds" {
+  description = "The name of the security group for rds"
+  type        = string
+  default = "rds-sg-group"
+}
+
+
+variable "security_group_description_rds" {
+  description = "The description of the security group for rds"
+  type        = string
+  default = "rds-sg-group-description"
+}
+
 
 variable "vpc_id" {
-   type    = string
-   default = "vpc id"
- }
-
-
-variable "ingress_cidr_blocks" {
-   type    = any
-   default = []
- }
-
-
-variable "egress_cidr_blocks" {
-   type    = any
-   default = []
- }
-
-
- variable "ingress_rules" {
-   type    = any
-   description = "List of ingress rules for the security group"
-  type        = list(object({
-    from_port   = 443
-    to_port     = 443
-    protocol    = string
-    cidr_blocks = list(string)
-  }))
-  default = []
+  description = "The vpc id gotten from creating vpc resource"
+  type = string
+  default = "vpc-0e28bdda7b69ea97c"
 }
-   
-
-variable "egress_rules" {
-  description = "List of egress rules for the RDS security group"
-  type        = list(object({
-    from_port   = 0
-    to_port     = 65535
-    protocol    = string
-    cidr_blocks = list(string)
-  }))
-  default = []
-}
-
-
-
- variable "ingress_with_cidr_blocks" {
-   type    = any
-   default = []
- } 
+  
