@@ -1,4 +1,7 @@
 ####MODULE FOR VPC
+provider "aws" {
+  region = var.aws_region # Replace with your desired AWS region
+}
 
 module "vpc" {
   source = "./modules/vpc"
@@ -17,7 +20,7 @@ module "vpc" {
 }
 
 
-####MODULE FOR SG
+####MODULE FOR VPC SECURITY GROUP and RDS SECURITY GROUP
 module "sg" {
   source  = "./modules/sg"
   vpc_id   =  module.vpc.vpc_id #i got this from module vpc
@@ -32,22 +35,54 @@ module "sg" {
 
 
 
+
+
 ####MODULE FOR RDS DATABASE
 module "rds" {
   source = "./modules/rds"
 
   identifier = var.identifier
-
   engine            = var.engine
   engine_version    = var.engine_version
   instance_class    = var.instance_class
   allocated_storage = var.allocated_storage
-
   db_name  = var.db_name
   username = var.username
   password = var.password
   port     = var.port
-  iam_database_authentication_enabled = var.iam_database_authentication_enabled
+  vpc_security_group_id = var.vpc_security_group_id
+  #iam_database_authentication_enabled = var.iam_database_authentication_enabled
   #vpc_security_group_ids = var.vpc_security_group_id
+  skip_final_snapshot          = false
+  final_snapshot_identifier = "demodb-snapshot"
  
 }
+
+
+
+####MODULE FOR EKS CLUSTER WITH NODEGROUP
+#module "eks" {
+#  source  = "./modules/eks"
+#  version = "~> 19.0"
+
+ # cluster_name    = var.cluster_name
+ # cluster_version = var.cluster_version
+ # cluster_endpoint_public_access  = var.cluster_endpoint_public_access
+##  cluster_addons = var.cluster_addons
+ # vpc_id                   = var.vpc_id
+ # subnet_ids               = var.subnet_ids
+ # eks_managed_node_groups = {
+ #   blue = {}
+  #  green = {
+  #    min_size     = 1
+  #    max_size     = 10
+   #   desired_size = 1
+
+   #   instance_types = var.instance_type
+   #   capacity_type  = var.capacity_type
+   # }
+  ##}
+
+
+
+#}

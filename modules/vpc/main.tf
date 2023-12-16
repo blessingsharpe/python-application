@@ -18,7 +18,7 @@ resource "aws_subnet" "public_subnet" {
   count = 2
   vpc_id = aws_vpc.my_vpc.id
   cidr_block = var.public_subnet[count.index]
-  availability_zone = element(["us-west-2a", "us-west-2b"], count.index)
+  availability_zone = element(["us-east-1a", "us-east-1b"], count.index)
   map_public_ip_on_launch = true  # This enables auto-assigning public IPs
   tags = {
     Name = "public-subnet-${count.index + 1}"
@@ -31,7 +31,7 @@ resource "aws_subnet" "private_subnet" {                        #for worker node
   count = 2
   vpc_id = aws_vpc.my_vpc.id
   cidr_block = var.private_subnet[count.index]
-  availability_zone = element(["us-west-2a", "us-west-2b"], count.index)
+  availability_zone = element(["us-east-1a", "us-east-1b"], count.index)
   map_public_ip_on_launch = false  # Private subnets don't auto-assign public IPs
   tags = {
     Name = "Private Subnet ${count.index}"
@@ -43,7 +43,7 @@ resource "aws_subnet" "subnet_rds" {
   count = 2
   cidr_block = var.rds_subnet[count.index]
   vpc_id = aws_vpc.my_vpc.id
-  availability_zone = element(["us-west-2a", "us-west-2b"], count.index)
+  availability_zone = element(["us-east-1a", "us-east-1b"], count.index)
   tags = {
     Name = "private-rds-subnet-${count.index + 1}"
   }

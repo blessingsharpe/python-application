@@ -3,7 +3,7 @@
 variable "aws_region" {
   description = "AWS region where the resources will be created"
   type        = string
-  default     = "us-west-2"
+  default     = "us-east-1"
 }
 
 variable "vpc_cidr_block" {

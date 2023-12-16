@@ -3,9 +3,19 @@ output "my_vpc_id" {   #i want the module vpc id to use for my security group mo
 }
 
 
-#output "my_vpc_securitygroup_id" {
-# value = module.sg.vpc_security_group_id
+output "vpc_security_group_id" {
+ value = module.sg.vpc_security_group_id
+}
+
+
+#output "public_subnet_ids" {
+#  value = module.vpc.public_subnet[*]_id
 #}
+
+#output "private_subnet_ids" {
+#  value = module.vpc.private_subnet[*]_id
+#}
+
 
 
 #output "my_rds_securitygroup_id" {

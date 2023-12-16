@@ -16,7 +16,7 @@ variable "engine" {
 variable "engine_version" {
   description = "db identifier"
   type        = string
-  default = "5.7"
+  default = "8.0.28"
 }
 
 
@@ -25,7 +25,7 @@ variable "engine_version" {
 variable "instance_class" {
   description = "db instance class"
   type        = string
-  default = "db.m6i.large"
+  default = "db.m7g.large"
 }
 
 
@@ -60,7 +60,7 @@ variable "username" {
 variable "password" {
   description = "db password"
   type        = string
-  default = "benny"
+  default = "Derekdarian2,"
 }  
   
 
@@ -73,10 +73,10 @@ variable "port" {
 
 
 
-variable "vpc_security_group_ids" {
+variable "vpc_security_group_id" {
   description = "vpc security group id"
-  type        = list(string)
-  default = ["sg-06444ebc232ee17ed"]
+  type        = string
+  default = "sg-05ac27bf9b0bb1abd"
 }
 
 
@@ -85,3 +85,5 @@ variable "iam_database_authentication_enabled" {
   type        = bool
   default = true
 }
+
+

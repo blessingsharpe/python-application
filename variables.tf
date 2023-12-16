@@ -3,7 +3,7 @@
 variable "aws_region" {
   description = "AWS region where the resources will be created"
   type        = string
-  default     = "us-west-2"
+  default     = "us-east-1"
 }
 
 variable "vpc_cidr_block" {
@@ -96,6 +96,23 @@ variable "security_group_description_rds" {
 }
 
 
+variable "vpc_security_group_id" {
+  description = "vpc security group id"
+  type        = string
+  default =  "sg-05ac27bf9b0bb1abd"       #or module.sg.vpc_security_group_ids if you dont want to go into aws console to get vpc sg id
+
+}
+
+
+variable "vpc_id" {
+  description = "The vpc id gotten from creating vpc resource"
+  type = string
+  default = "vpc-058db0ecf18fe5d6d"
+}
+
+
+
+
 
 ####VARIABLES FOR RDS DATABASE
 
@@ -117,7 +134,7 @@ variable "engine" {
 variable "engine_version" {
   description = "db identifier"
   type        = string
-  default = "5.7"
+  default = "8.0.28"
 }
 
 
@@ -126,7 +143,7 @@ variable "engine_version" {
 variable "instance_class" {
   description = "db instance class"
   type        = string
-  default = "db.m6i.large"
+  default = "db.m7g.large"
 }
 
 
@@ -161,7 +178,7 @@ variable "username" {
 variable "password" {
   description = "db password"
   type        = string
-  default = "benny"
+  default = "Derekdarian2,"
 }  
   
 
@@ -175,15 +192,108 @@ variable "port" {
 
 
 
-#variable "vpc_security_group_ids" {
- # description = "vpc security group id"
-#  type        = list(string)
- # default = ["sg-06444ebc232ee17ed"]
+
+
+
+#variable "iam_database_authentication_enabled" {
+#  description = "if to enable authentication for database"
+#  type        = bool
+#  default = true
 #}
 
 
-variable "iam_database_authentication_enabled" {
-  description = "if to enable authentication for database"
-  type        = bool
+
+
+####VARIABLES FOR EKS CLUSTER
+
+variable "cluster_name" {
+  description = "Name for the EKS cluster"
+  type = string
+  default = "eks_recipeapp"
+}
+
+
+
+variable "cluster_role" {
+  description = "version for the EKS cluster"
+  type = string
+  default = "eks-role"
+}
+
+
+
+variable "cluster_version" {
+  description = "version for the EKS cluster"
+  type = string
+  default = "1.27"
+}
+
+
+variable "cluster_endpoint_public_access" {
+  description = "eks cluster endpoint for public access"
+  type = bool
   default = true
+
+}
+
+
+variable "name_cluster_policy" {
+  description = "Policy for EKS cluster"
+  type = string
+  default = "eks-policy"
+}
+
+
+variable "subnet_ids" {
+  description = "these are public and private subnet ids gotten from vpc module output that would be used to create the cluster"
+  type = list(string)
+  default = ["subnet-0f8cbd11c05754127","subnet-03fb0d93feb1dba61", "subnet-042632015d182fd50", "subnet-0a135c67824b30314"]
+  
+}
+
+
+variable "node_group_name" {
+  description = "Name of nodegroup"
+  type = string
+  default = "nodegroup_recipeapp"
+}
+
+
+
+variable "node_group_role" {
+  description = "role for nodegroup"
+  type = string
+  default = "nodegroup_role"
+}
+
+
+
+variable "cluster_addons" {
+  description = "addons like coredns, vpc-cni and kube-proxy are needed for eks cluster "
+  type = map(any)
+  default = {
+    coredns = {
+      most_recent = true
+    }
+    kube-proxy = {
+      most_recent = true
+    }
+    vpc-cni = {
+      most_recent = true
+  }
+}
+}
+
+
+variable "instance_type" {
+  description = "instance type for worker nodes"
+  type = string
+  default = "t3.large"
+}
+
+
+variable "capacity_type" {
+  description = "capacity type for worker nodes"
+  type = string
+  default = "SPOT"
 }
