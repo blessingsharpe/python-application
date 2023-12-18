@@ -1,5 +1,5 @@
-output "cluster_name" {
-  value = module.eks.cluster_name
-  description = "The name of the EKS cluster"
-}
+#output "cluster_name" {
+#  value = module.eks.cluster_name
+#  description = "The name of the EKS cluster"
+#}
 

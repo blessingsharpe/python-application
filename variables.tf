@@ -102,7 +102,7 @@ variable "vpc_security_group_id" {
   default =  "sg-05ac27bf9b0bb1abd"       #or module.sg.vpc_security_group_ids if you dont want to go into aws console to get vpc sg id
 
 }
-
+  
 
 variable "vpc_id" {
   description = "The vpc id gotten from creating vpc resource"
@@ -247,9 +247,12 @@ variable "name_cluster_policy" {
 variable "subnet_ids" {
   description = "these are public and private subnet ids gotten from vpc module output that would be used to create the cluster"
   type = list(string)
-  default = ["subnet-0f8cbd11c05754127","subnet-03fb0d93feb1dba61", "subnet-042632015d182fd50", "subnet-0a135c67824b30314"]
-  
+  #default = [module.vpc.public_subnet[*]_id, module.vpc.private_subnet[*]_id]
+  default =["subnet-09eb420a1880e6b26","subnet-00ab245666b4f94e9", "subnet-09f4257b803fa92d8", "subnet-04c89149a25b07a96"]
 }
+ 
+  
+
 
 
 variable "node_group_name" {

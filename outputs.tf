@@ -9,11 +9,11 @@ output "vpc_security_group_id" {
 
 
 #output "public_subnet_ids" {
-#  value = module.vpc.public_subnet[*]_id
+#  value = module.vpc.public_subnet[*].id
 #}
 
 #output "private_subnet_ids" {
-#  value = module.vpc.private_subnet[*]_id
+#  value = module.vpc.private_subnet[*].id
 #}
 
 

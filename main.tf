@@ -53,36 +53,34 @@ module "rds" {
   vpc_security_group_id = var.vpc_security_group_id
   #iam_database_authentication_enabled = var.iam_database_authentication_enabled
   #vpc_security_group_ids = var.vpc_security_group_id
-  skip_final_snapshot          = false
-  final_snapshot_identifier = "demodb-snapshot"
+  
  
 }
 
 
 
 ####MODULE FOR EKS CLUSTER WITH NODEGROUP
-#module "eks" {
-#  source  = "./modules/eks"
-#  version = "~> 19.0"
+module "eks" {
+  source  = "./modules/eks"
+  #version = "19.21.0"
 
- # cluster_name    = var.cluster_name
- # cluster_version = var.cluster_version
- # cluster_endpoint_public_access  = var.cluster_endpoint_public_access
-##  cluster_addons = var.cluster_addons
- # vpc_id                   = var.vpc_id
- # subnet_ids               = var.subnet_ids
+  cluster_name    = var.cluster_name
+  #cluster_version = var.cluster_version
+  #cluster_endpoint_public_access  = var.cluster_endpoint_public_access
+  #cluster_addons = var.cluster_addons
+  #vpc_id                   = var.vpc_id
+  subnet_ids               = var.subnet_ids
  # eks_managed_node_groups = {
  #   blue = {}
-  #  green = {
+ #   green = {
   #    min_size     = 1
   #    max_size     = 10
-   #   desired_size = 1
+  #    desired_size = 1
 
-   #   instance_types = var.instance_type
-   #   capacity_type  = var.capacity_type
-   # }
-  ##}
+  #    instance_types = var.instance_type
+  #    capacity_type  = var.capacity_type
+   #}
+  }
 
 
 
-#}

@@ -47,7 +47,7 @@ variable "cluster_policy" {
 
 variable "subnet_ids" {
   description = "these are public and private subnet ids gotten from vpc module output that would be used to create the cluster"
-  default = ["subnet-0f8cbd11c05754127","subnet-03fb0d93feb1dba61", "subnet-042632015d182fd50", "subnet-0a135c67824b30314"]
+  default = ["subnet-09eb420a1880e6b26","subnet-00ab245666b4f94e9", "subnet-09f4257b803fa92d8", "subnet-04c89149a25b07a96"]
   type = list(string)
 }
 
@@ -70,4 +70,11 @@ variable "node_group_role" {
   description = "role for nodegroup"
   type = string
   default = "nodegroup_role"
+}
+
+
+variable "private_subnet_ids" {
+  description = "prvate subnet ids for nodegroup"
+  default = ["subnet-04c89149a25b07a96","subnet-09f4257b803fa92d8"]
+  type = list(string)
 }
