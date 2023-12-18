@@ -209,7 +209,7 @@ variable "port" {
 variable "cluster_name" {
   description = "Name for the EKS cluster"
   type = string
-  default = "eks_recipeapp"
+  default = "eks-recipe"
 }
 
 
@@ -248,7 +248,7 @@ variable "subnet_ids" {
   description = "these are public and private subnet ids gotten from vpc module output that would be used to create the cluster"
   type = list(string)
   #default = [module.vpc.public_subnet[*]_id, module.vpc.private_subnet[*]_id]
-  default =["subnet-09eb420a1880e6b26","subnet-00ab245666b4f94e9", "subnet-09f4257b803fa92d8", "subnet-04c89149a25b07a96"]
+  default =["subnet-0355e37905cd662db","subnet-02c0a1cfcb47655b6", "subnet-0755b0909dac29cb7", "subnet-0fb6cf37ff8e38b2b"]
 }
  
   
@@ -300,3 +300,28 @@ variable "capacity_type" {
   type = string
   default = "SPOT"
 }
+
+
+
+variable "desired_capacity" {
+  description = "capacity type for worker nodes"
+  type = string
+  default = "2"
+}
+
+
+
+variable "min_size" {
+  description = "min. size for worker nodes"
+  type = string
+  default = "1"
+}
+
+
+variable "max_size" {
+  description = "max. size for worker nodes"
+  type = string
+  default = "2"
+}
+
+

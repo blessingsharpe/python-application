@@ -54,6 +54,11 @@ variable "enable_vpn_gateway" {
   default     = true
 }
 
+
+
+
+
+
 variable "tags" {
   description = "A map of tags to apply to resources"
   type        = map(any)
@@ -63,3 +68,17 @@ variable "tags" {
 }
 
 
+
+variable "public_ids" {
+  description = "list of public subnet ids created on aws console"
+  type        = list(any)
+  default     = ["subnet-0fb6cf37ff8e38b2b", "subnet-0755b0909dac29cb7"]
+}
+
+
+
+variable "private_ids" {
+  description = "list of private subnet ids created on aws console"
+  type        = list(any)
+  default     = ["subnet-0355e37905cd662db", "subnet-02c0a1cfcb47655b6"]
+}

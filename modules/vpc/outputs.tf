@@ -14,3 +14,5 @@ output "private_subnet_ids" {
 output "database_subnet_ids" {
   value = aws_db_subnet_group.database_sub_group.id
 }
+
+

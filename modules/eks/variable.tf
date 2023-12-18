@@ -1,7 +1,7 @@
 variable "cluster_name" {
   description = "Name for the EKS cluster"
   type = string
-  default = "eks_recipeapp"
+  default = "eks-recipe"
 }
 
 
@@ -75,6 +75,22 @@ variable "node_group_role" {
 
 variable "private_subnet_ids" {
   description = "prvate subnet ids for nodegroup"
-  default = ["subnet-04c89149a25b07a96","subnet-09f4257b803fa92d8"]
+  default = ["subnet-02c0a1cfcb47655b6","subnet-0355e37905cd662db"]
   type = list(string)
 }
+
+
+
+variable "instance_type" {
+  description = "instance type for worker nodes"
+  type = list(string)
+  default = ["t3.large", "t2.medium"]
+}
+
+
+variable "capacity_type" {
+  description = "capacity type for worker nodes"
+  type = string
+  default = "SPOT"
+}
+

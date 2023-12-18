@@ -16,8 +16,18 @@ module "vpc" {
   enable_vpn_gateway = var.enable_vpn_gateway
   enable_dns_support = var.enable_dns_support
   enable_dns_hostnames = var.enable_dns_hostnames
+
   tags = var.tags
+  
+
 }
+
+
+
+
+
+
+
 
 
 ####MODULE FOR VPC SECURITY GROUP and RDS SECURITY GROUP
@@ -62,25 +72,12 @@ module "rds" {
 ####MODULE FOR EKS CLUSTER WITH NODEGROUP
 module "eks" {
   source  = "./modules/eks"
-  #version = "19.21.0"
-
   cluster_name    = var.cluster_name
-  #cluster_version = var.cluster_version
-  #cluster_endpoint_public_access  = var.cluster_endpoint_public_access
-  #cluster_addons = var.cluster_addons
-  #vpc_id                   = var.vpc_id
-  subnet_ids               = var.subnet_ids
- # eks_managed_node_groups = {
- #   blue = {}
- #   green = {
-  #    min_size     = 1
-  #    max_size     = 10
-  #    desired_size = 1
-
-  #    instance_types = var.instance_type
-  #    capacity_type  = var.capacity_type
-   #}
-  }
+  subnet_ids      = var.subnet_ids
+  node_group_name = var.node_group_name
+  
+}
+ 
 
 
 
