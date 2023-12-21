@@ -1,7 +1,3 @@
-provider "aws" {
-  region = var.aws_region # Replace with your desired AWS region
-}
-
 resource "aws_vpc" "my_vpc" {
   cidr_block = var.vpc_cidr_block # Replace with your desired CIDR block for the VPC
   enable_dns_support   = var.enable_dns_support
@@ -52,7 +48,7 @@ resource "aws_subnet" "subnet_rds" {
 
 
 resource "aws_db_subnet_group" "database_sub_group" {
-  name       = "database-subgroup"
+  name       = "db-subgroup"
   subnet_ids = aws_subnet.subnet_rds[*].id
 }
 
@@ -68,27 +64,51 @@ resource "aws_internet_gateway" "igw" {
 
 
 
-
-resource "aws_eip" "nat" {
+####elastic ip for  NAT gateway 1
+resource "aws_eip" "ip_elastic" {
   vpc = true
 
   tags = {
-    Name = "nat"
+    Name = "elasticreal"
   }
 }
 
 
-
-resource "aws_nat_gateway" "nat" {
-  allocation_id = aws_eip.nat.id
-  subnet_id     =  "subnet-0fb6cf37ff8e38b2b"
+####elastic ip for NAT gateway 2
+resource "aws_eip" "ip_elastic_2" {
+  vpc = true
 
   tags = {
-    Name = "nat"
+    Name = "elasticreal2"
+  }
+}
+
+###CREATE one elastic ip and 2 nat gateways in 2 public sub and associate both nat to the same eip
+##NAT Gateways should be placed in different subnets for high availability and fault tolerance
+resource "aws_nat_gateway" "nat_1" {
+  allocation_id = aws_eip.ip_elastic_2.id
+  subnet_id     =  "subnet-0d5fcff980526bed4"  #public sub 1 id
+
+  tags = {
+   Name = "Natgate1"
+ }
+
+  depends_on = [aws_internet_gateway.igw]
+}
+
+
+
+resource "aws_nat_gateway" "nat_2" {
+  allocation_id = aws_eip.ip_elastic.id
+  subnet_id     =  "subnet-0063be6b967f8b1b7"  #public sub 2 id
+
+  tags = {
+    Name = "Natgate2"
   }
 
   depends_on = [aws_internet_gateway.igw]
 }
+
 
 
 
@@ -130,12 +150,12 @@ resource "aws_route_table" "public" {
 
 
 # Create the private route table
-resource "aws_route_table" "private" {
+resource "aws_route_table" "private1" {
   vpc_id = aws_vpc.my_vpc.id
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat.id
+    nat_gateway_id = aws_nat_gateway.nat_1.id
   }
 
   tags = {
@@ -146,27 +166,41 @@ resource "aws_route_table" "private" {
 
 
 
+resource "aws_route_table" "private2" {
+  vpc_id = aws_vpc.my_vpc.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat_2.id
+  }
+
+  tags = {
+    Name = "Private Route Table"
+  }
+}
+
+
 
 
 resource "aws_route_table_association" "private_1" {
-  subnet_id      = "subnet-0355e37905cd662db"
-  route_table_id = aws_route_table.private.id
+  subnet_id      = "subnet-0d84c71c59c195267"
+  route_table_id = aws_route_table.private1.id
 }
 
 
 
 resource "aws_route_table_association" "private_2" {
-  subnet_id      = "subnet-02c0a1cfcb47655b6"
-  route_table_id = aws_route_table.private.id
+  subnet_id      = "subnet-05dc56d2fcb15cd77"
+  route_table_id = aws_route_table.private2.id
 }
 
 resource "aws_route_table_association" "public_1" {
-  subnet_id      = "subnet-0fb6cf37ff8e38b2b"
+  subnet_id      = "subnet-0d5fcff980526bed4"
   route_table_id = aws_route_table.public.id
 }
 
 
 resource "aws_route_table_association" "public_2" {
-  subnet_id      = "subnet-0755b0909dac29cb7"
+  subnet_id      = "subnet-0063be6b967f8b1b7"
   route_table_id = aws_route_table.public.id
 }

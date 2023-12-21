@@ -63,7 +63,7 @@ variable "tags" {
   description = "A map of tags to apply to resources"
   type        = map(any)
   default     = {
-    Name      = "MyVPC"
+    Name      = "vpc-project"
   }
 }
 
@@ -72,7 +72,7 @@ variable "tags" {
 variable "public_ids" {
   description = "list of public subnet ids created on aws console"
   type        = list(any)
-  default     = ["subnet-0fb6cf37ff8e38b2b", "subnet-0755b0909dac29cb7"]
+  default     = ["subnet-0d5fcff980526bed4", "subnet-0063be6b967f8b1b7"]
 }
 
 
@@ -80,5 +80,5 @@ variable "public_ids" {
 variable "private_ids" {
   description = "list of private subnet ids created on aws console"
   type        = list(any)
-  default     = ["subnet-0355e37905cd662db", "subnet-02c0a1cfcb47655b6"]
+  default     = ["subnet-0d84c71c59c195267", "subnet-05dc56d2fcb15cd77"]
 }

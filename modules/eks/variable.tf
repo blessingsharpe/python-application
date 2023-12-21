@@ -9,7 +9,7 @@ variable "cluster_name" {
 variable "cluster_role" {
   description = "version for the EKS cluster"
   type = string
-  default = "eks-role"
+  default = "cluster-role"
 }
 
 
@@ -47,7 +47,7 @@ variable "cluster_policy" {
 
 variable "subnet_ids" {
   description = "these are public and private subnet ids gotten from vpc module output that would be used to create the cluster"
-  default = ["subnet-09eb420a1880e6b26","subnet-00ab245666b4f94e9", "subnet-09f4257b803fa92d8", "subnet-04c89149a25b07a96"]
+  default =["subnet-0d5fcff980526bed4","subnet-0063be6b967f8b1b7", "subnet-05dc56d2fcb15cd77", "subnet-0d84c71c59c195267"]
   type = list(string)
 }
 
@@ -61,7 +61,7 @@ variable "subnet_ids" {
 variable "node_group_name" {
   description = "Name of nodegroup"
   type = string
-  default = "nodegroup_recipeapp"
+  default = "node_recipeapp"
 }
 
 
@@ -69,13 +69,13 @@ variable "node_group_name" {
 variable "node_group_role" {
   description = "role for nodegroup"
   type = string
-  default = "nodegroup_role"
+  default = "node_role"
 }
 
 
 variable "private_subnet_ids" {
   description = "prvate subnet ids for nodegroup"
-  default = ["subnet-02c0a1cfcb47655b6","subnet-0355e37905cd662db"]
+  default = ["subnet-0d84c71c59c195267","subnet-05dc56d2fcb15cd77"]
   type = list(string)
 }
 

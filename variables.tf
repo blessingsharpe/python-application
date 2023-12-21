@@ -58,7 +58,7 @@ variable "tags" {
   description = "A map of tags to apply to resources"
   type        = map(any)
   default     = {
-    Name      = "MyVPC"
+    Name      = "vpc-project"
   }
 }
 
@@ -248,7 +248,7 @@ variable "subnet_ids" {
   description = "these are public and private subnet ids gotten from vpc module output that would be used to create the cluster"
   type = list(string)
   #default = [module.vpc.public_subnet[*]_id, module.vpc.private_subnet[*]_id]
-  default =["subnet-0355e37905cd662db","subnet-02c0a1cfcb47655b6", "subnet-0755b0909dac29cb7", "subnet-0fb6cf37ff8e38b2b"]
+  default =["subnet-0d5fcff980526bed4","subnet-0063be6b967f8b1b7", "subnet-05dc56d2fcb15cd77", "subnet-0d84c71c59c195267"]
 }
  
   
@@ -324,4 +324,21 @@ variable "max_size" {
   default = "2"
 }
 
+
+###can be gotten using aws eks describe-cluster --name <cluster-name> --region <region> --query "cluster.certificateAuthority.data"
+
+variable "cluster_ca_cert" {
+  description = "certificate authority for cluster"
+  type = string
+  default = "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURCVENDQWUyZ0F3SUJBZ0lJT1JnYkZ2QU05V2d3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TXpFeU1qQXhPREU0TlRSYUZ3MHpNekV5TVRjeE9ESXpOVFJhTUJVeApFekFSQmdOVkJBTVRDbXQxWW1WeWJtVjBaWE13Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLCkFvSUJBUUM5bEZSemJFNXNnVVlPdmN5MXRVdVk1QmdJTXBEbC9TcFJ0bFN5ZkJobG11VTJXVmNvY1I4bmlVakwKaGRpMEFtQ3RBN2FpZHp5UExDSlRzdmx6cWxkRElubGRrNnlCdUlMZ3l1UDBIWk1CQk1qQ3RiSlpQcG4rQng3dgpFMzlsbWVWQ1RnVi8wVWFER1R6d1VkdWhkOC8xMGdOT0o5V1dhOGhENTdqVkx0OXg4M0krWmFSOEhmZ1hpR1plCmJ4REZGTXVCOW4zWkJ4Yk91R2JsWlRrdXBFMTBTS3VvQ1E1UWVpQjI1My9FVEJ4ZGZXK2swWFc0Qlc2THVaekwKUUdwSVJZQ0lhd2Qydk9KbVVuUmZEUm1uZFVMcHNPOFBrYlNPRHdtSC93cnZjWGlGKzB6NlN5NUF1dGI0R2tpQQpLeVc5OXh0Z0Q4SGNmNHNjUWNWU3cxZHJXbUNSQWdNQkFBR2pXVEJYTUE0R0ExVWREd0VCL3dRRUF3SUNwREFQCkJnTlZIUk1CQWY4RUJUQURBUUgvTUIwR0ExVWREZ1FXQkJSNEkvVW13M0prWGVvVlFMV05BYzdJZzRPcUhEQVYKQmdOVkhSRUVEakFNZ2dwcmRXSmxjbTVsZEdWek1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQ2EzWlRXY2NscAozc2g0OXNDL2ZOZ2UzYmhNZVNpZFBTMTJCZW1ScTBNSTJQeHJpNXdYaDNSekY1enBzTVAzZEpoVk1Vd1BGU0dZCmxsVENud2ZUZFhYMVVMZGc0Y09mNnNXVzBocW9lTm9oeE14RnljZ3FaeUcvaUsvSFE4NitwRDBPZUdmOHhWekIKRW5Lc25Sa2oxcTBCSlhKcmpYb2hVNVdRcTAxeHFhMGNzdlFBS1FDL28vRE1RUlh0NEkxOUdvK2xDMVNLanNPMQpaZ3Vzbms5MHNRL2QvRGxwazFUU0JMc3FYeTR2TU1qc3JwTXphemZ1MUdheDRYWGd1YWx4akRucFMzMXlhb2dLClRCVUVwUXYwTWp3M3Y4SDBmVE9hNkRRT0pHT2N6dm91MW1CVW0wN2xsbEl4V0pYVzh4aFloandVRW9yWGhKWU4KUU1sajRrNmkrVFc3Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K"
+}
+
+
+####can be gotten using aws eks describe-cluster --name <cluster-name> --region <region> --query "cluster.endpoint"
+
+variable "cluster_endpoint" {
+  description = "cluster endpoint"
+  type = string
+  default = "https://06BA6E1CB4FD3A79C891E46631D12DBB.gr7.us-east-1.eks.amazonaws.com"
+}
 

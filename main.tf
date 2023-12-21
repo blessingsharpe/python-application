@@ -1,7 +1,7 @@
 ####MODULE FOR VPC
-provider "aws" {
-  region = var.aws_region # Replace with your desired AWS region
-}
+#provider "aws" {
+#  region = var.aws_region # Replace with your desired AWS region
+#}
 
 module "vpc" {
   source = "./modules/vpc"

@@ -11,7 +11,7 @@ resource "aws_db_instance" "instance_rds" {
   #parameter_group_name = "default.mysql5.7"
   port = var.port
  # vpc_security_group_ids = var.vpc_security_group_id
-  skip_final_snapshot          = false
+  skip_final_snapshot          = true
   final_snapshot_identifier = "demodb-snapshot"
 
  
